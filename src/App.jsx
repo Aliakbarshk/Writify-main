@@ -3,6 +3,8 @@ import Signup from "./components/signup";
 import Login from "./components/Login";
 import Notebook from "./components/Notebook";
 import { auth } from "./firebase";
+import './index.css'; // or './App.css' if that's where your tailwind directives live
+
 import "./App.css";
 
 function App() {

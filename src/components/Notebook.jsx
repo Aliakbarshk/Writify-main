@@ -1,9 +1,8 @@
-// src/Notebook.jsx
 import React, { useRef, useState } from "react";
 import html2canvas from "html2canvas";
 import "./Notebook.css";
 
-function Notebook() {
+function Notebook({ user, onLogout }) {   // <-- Accepts user and onLogout as props
   const [text, setText] = useState("");
   const [fontSize, setFontSize] = useState(22);
   const [lineHeight, setLineHeight] = useState(30);
@@ -45,10 +44,46 @@ function Notebook() {
     overflow: "hidden",
   };
 
+  // Get user's name or email as fallback
+  const userDisplayName = user?.displayName || user?.email || "User";
+
   return (
     <div className="App">
-      <h2>🖊️ Writify – Handwritten Note Generator</h2>
-      <p className="tagline">Make your typed text look handwritten!</p>
+      {/* User Name Display (top-right corner, customizable!) */}
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: "1rem"
+      }}>
+        <div>
+          <h2>🖊️ Writify – Handwritten Note Generator</h2>
+          <p className="tagline">Make your typed text look handwritten!</p>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <span style={{
+            fontWeight: "bold",
+            color: "#1a237e",
+            fontSize: "1rem"
+          }}>
+            👋 Hello, {userDisplayName}
+          </span>
+          <button
+            onClick={onLogout}
+            style={{
+              marginLeft: "12px",
+              fontSize: "0.9em",
+              padding: "4px 12px",
+              background: "#e3e8fc",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer"
+            }}
+          >
+            Logout
+          </button>
+        </div>
+      </div>
 
       <div className="controls">
         <label>
