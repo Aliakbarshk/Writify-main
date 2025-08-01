@@ -36,7 +36,6 @@ function Notebook({ user, onLogout }) {   // <-- Accepts user and onLogout as pr
     letterSpacing: `${letterSpacing}px`,
     wordSpacing: `${wordSpacing}px`,
     paddingTop: `${topOffset}px`,
-    paddingLeft: "60px",
     color: textColor,
     whiteSpace: "pre-wrap",
     height: "100%",
