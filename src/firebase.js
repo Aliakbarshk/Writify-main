@@ -4,7 +4,7 @@ import {GoogleAuthProvider} from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDqYGhSw07JQgjwnbOOceqWBDysphmFMwc",
-  authDomain: "https://writfyyprototype1.netlify.app/",
+  authDomain: "writify-a823a.firebaseapp.com",
   projectId: "writify-a823a",
   storageBucket: "writify-a823a.firebasestorage.app",
   messagingSenderId: "588065529980",

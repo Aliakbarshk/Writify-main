@@ -50,22 +50,26 @@ function Notebook({ user, onLogout }) {   // <-- Accepts user and onLogout as pr
   return (
     <div className="App">
       {/* User Name Display (top-right corner, customizable!) */}
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: "1rem"
-      }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "1rem",
+        }}
+      >
         <div>
           <h2>🖊️ Writify – Handwritten Note Generator</h2>
           <p className="tagline">Make your typed text look handwritten!</p>
         </div>
         <div style={{ textAlign: "right" }}>
-          <span style={{
-            fontWeight: "bold",
-            color: "#1a237e",
-            fontSize: "1rem"
-          }}>
+          <span
+            style={{
+              fontWeight: "bold",
+              color: "#1a237e",
+              fontSize: "1rem",
+            }}
+          >
             👋 Hello, {userDisplayName}
           </span>
           <button
@@ -77,7 +81,7 @@ function Notebook({ user, onLogout }) {   // <-- Accepts user and onLogout as pr
               background: "#e3e8fc",
               border: "none",
               borderRadius: "6px",
-              cursor: "pointer"
+              cursor: "pointer",
             }}
           >
             Logout
@@ -200,6 +204,14 @@ function Notebook({ user, onLogout }) {   // <-- Accepts user and onLogout as pr
           {text.trim() ? text.trim().split(/\s+/).length : 0} Words
         </span>
       </div>
+      <footer className="footer">
+        Writify © — Personal/Educational Use Only. No refunds. Powered by 💡
+        <p>
+          Writify is provided for personal, educational, and creative use only.
+          All content generated using this platform—whether handwritten images
+          or notes—remains the sole responsibility of the user.
+        </p>
+      </footer>
     </div>
   );
 }
