@@ -1,8 +1,9 @@
+// src/components/Signup.jsx
 import React, { useState } from "react";
 import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { auth, provider } from "../firebase";
 
-function Signup({ onSignup }) {
+function Signup({ onClose }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -12,55 +13,67 @@ function Signup({ onSignup }) {
     setError("");
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      onSignup();
+      onClose();
     } catch (err) {
       setError(err.message);
     }
   };
 
   const handleGoogleSignup = async () => {
-    setError("");
     try {
       await signInWithPopup(auth, provider);
-      onSignup();
+      onClose();
     } catch (err) {
       setError(err.message);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-6 space-y-4">
+    <div className="bg-white shadow-xl rounded-lg p-8 w-full max-w-md">
+      <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
+        Sign Up for Writify
+      </h2>
+      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
       <form onSubmit={handleSignup} className="space-y-4">
-        <input
-          className="border rounded px-4 py-2"
-          type="email"
-          placeholder="Email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          className="border rounded px-4 py-2"
-          type="password"
-          placeholder="Password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <div>
+          <label className="block mb-1 text-gray-600">Email</label>
+          <input
+            type="email"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block mb-1 text-gray-600">Password</label>
+          <input
+            type="password"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+
         <button
-          className="bg-blue-600 text-white px-4 py-2 rounded"
           type="submit"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-md"
         >
           Sign Up
         </button>
       </form>
+
+      <div className="mt-6 text-center text-gray-500">OR</div>
+
       <button
         onClick={handleGoogleSignup}
-        className="bg-red-500 text-white px-4 py-2 rounded"
+        className="w-full mt-4 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 rounded-md"
       >
-        Sign Up with Google
+        Continue with Google
       </button>
-      {error && <div className="text-red-600">{error}</div>}
     </div>
   );
 }

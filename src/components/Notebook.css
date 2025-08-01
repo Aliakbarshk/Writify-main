@@ -1,0 +1,81 @@
+/* Notebook.css */
+body {
+  font-family: sans-serif;
+  background-color: #fefefe;
+  margin: 0;
+  padding: 0;
+}
+
+.App {
+  padding: 20px;
+  max-width: 900px;
+  margin: auto;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.controls label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+
+textarea {
+  width: 100%;
+  min-height: 100px;
+  margin-bottom: 20px;
+  font-size: 16px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.notebook-container {
+  position: relative;
+  width: 794px;
+  height: 1123px;
+  background-color: white;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  margin: auto;
+  background-image: linear-gradient(to bottom, transparent 29px, #d0d0d0 30px);
+  background-size: 100% 30px;
+  padding: 40px;
+  box-sizing: border-box;
+}
+
+.notebook-paper {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.btns {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+button.action {
+  padding: 8px 16px;
+  border: none;
+  background-color: #4caf50;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button.action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.stats {
+  margin-left: auto;
+  font-size: 14px;
+}
