@@ -13,7 +13,7 @@ function Signup({ onClose }) {
     setError("");
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      onClose();
+      onClose(); // Close signup and fallback to login
     } catch (err) {
       setError(err.message);
     }
@@ -74,6 +74,13 @@ function Signup({ onClose }) {
       >
         Continue with Google
       </button>
+
+      {/* ✅ Add Login toggle here */}
+      <div className="mt-6 text-center">
+        <button onClick={onClose} className="text-blue-600 underline text-sm">
+          Already have an account? Login
+        </button>
+      </div>
     </div>
   );
 }
