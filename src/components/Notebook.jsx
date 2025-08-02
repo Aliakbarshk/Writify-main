@@ -9,8 +9,8 @@ function Notebook({ user, onLogout }) {
   const [letterSpacing, setLetterSpacing] = useState(0);
   const [wordSpacing, setWordSpacing] = useState(0);
   const [topOffset, setTopOffset] = useState(40);
-  const [fontFamily, setFontFamily] = useState("Daniel, cursive");
-  const [textColor, setTextColor] = useState("#1a237e");
+const [fontFamily, setFontFamily] = useState("'Indie Flower', cursive");
+const [textColor, setTextColor] = useState("#1a237e");
 
   const previewRef = useRef(null);
 
