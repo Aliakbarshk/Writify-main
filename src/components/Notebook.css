@@ -92,6 +92,12 @@ button.action:disabled {
 
 /* ✅ Responsive */
 @media (max-width: 850px) {
+
+  body {
+  font-family: sans-serif;
+}
+
+
   .App {
     padding: 15px;
   }
