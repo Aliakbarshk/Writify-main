@@ -1,6 +1,5 @@
 import React, { useRef, useState } from "react";
 import html2canvas from "html2canvas";
-import "./Notebook.css";
 
 function Notebook({ user, onLogout }) {
   const [text, setText] = useState("");
@@ -9,14 +8,13 @@ function Notebook({ user, onLogout }) {
   const [letterSpacing, setLetterSpacing] = useState(0);
   const [wordSpacing, setWordSpacing] = useState(0);
   const [topOffset, setTopOffset] = useState(40);
-const [fontFamily, setFontFamily] = useState("'Indie Flower', cursive");
-const [textColor, setTextColor] = useState("#1a237e");
+  const [fontFamily, setFontFamily] = useState("'Indie Flower', cursive");
+  const [textColor, setTextColor] = useState("#1a237e");
 
   const previewRef = useRef(null);
 
   const downloadImage = () => {
     if (!text.trim()) return;
-
     html2canvas(previewRef.current, {
       scale: 3,
       useCORS: true,
@@ -46,50 +44,38 @@ const [textColor, setTextColor] = useState("#1a237e");
   const userDisplayName = user?.displayName || user?.email || "User";
 
   return (
-    <div className="App">
-      <header
-        className="top-bar"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "1rem",
-        }}
-      >
+    <div className="p-6 max-w-5xl mx-auto bg-white rounded-xl shadow-md">
+      {/* Header */}
+      <header className="flex justify-between items-center mb-6">
         <div>
-          <h2>🖊️ Writify – Handwritten Note Generator</h2>
-          <p className="tagline">Make your typed text look handwritten!</p>
+          <h2 className="text-2xl font-semibold text-indigo-900">
+            🖊️ Writify – Handwritten Note Generator
+          </h2>
+          <p className="text-sm text-gray-600">
+            Make your typed text look handwritten!
+          </p>
         </div>
-        <div style={{ textAlign: "right" }}>
-          <span
-            style={{ fontWeight: "bold", color: "#1a237e", fontSize: "1rem" }}
-          >
+        <div className="text-right">
+          <span className="font-semibold text-indigo-800 text-sm">
             👋 Hello, {userDisplayName}
           </span>
           <button
             onClick={onLogout}
-            style={{
-              marginLeft: "12px",
-              fontSize: "0.9em",
-              padding: "4px 12px",
-              background: "#e3e8fc",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-            }}
+            className="ml-4 text-sm px-3 py-1 bg-indigo-100 hover:bg-indigo-200 rounded-md"
           >
             Logout
           </button>
         </div>
       </header>
 
-      {/* Font Controls */}
-      <div className="controls">
-        <label>
+      {/* Controls */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+        <label className="flex flex-col text-sm font-medium text-gray-700">
           Font
           <select
             value={fontFamily}
             onChange={(e) => setFontFamily(e.target.value)}
+            className="mt-1 p-2 border rounded-md"
           >
             <option value="'Indie Flower', cursive">Indie Flower</option>
             <option value="Daniel, cursive">Daniel</option>
@@ -106,16 +92,17 @@ const [textColor, setTextColor] = useState("#1a237e");
           </select>
         </label>
 
-        <label>
+        <label className="flex flex-col text-sm font-medium text-gray-700">
           Text Color
           <input
             type="color"
             value={textColor}
             onChange={(e) => setTextColor(e.target.value)}
+            className="mt-1 w-10 h-10 p-0 border-none"
           />
         </label>
 
-        <label>
+        <label className="flex flex-col text-sm font-medium text-gray-700">
           Font Size
           <input
             type="range"
@@ -123,10 +110,11 @@ const [textColor, setTextColor] = useState("#1a237e");
             max="40"
             value={fontSize}
             onChange={(e) => setFontSize(+e.target.value)}
+            className="mt-1"
           />
         </label>
 
-        <label>
+        <label className="flex flex-col text-sm font-medium text-gray-700">
           Line Height
           <input
             type="range"
@@ -134,10 +122,11 @@ const [textColor, setTextColor] = useState("#1a237e");
             max="60"
             value={lineHeight}
             onChange={(e) => setLineHeight(+e.target.value)}
+            className="mt-1"
           />
         </label>
 
-        <label>
+        <label className="flex flex-col text-sm font-medium text-gray-700">
           Letter Spacing
           <input
             type="range"
@@ -146,10 +135,11 @@ const [textColor, setTextColor] = useState("#1a237e");
             step="0.1"
             value={letterSpacing}
             onChange={(e) => setLetterSpacing(+e.target.value)}
+            className="mt-1"
           />
         </label>
 
-        <label>
+        <label className="flex flex-col text-sm font-medium text-gray-700">
           Word Spacing
           <input
             type="range"
@@ -157,10 +147,11 @@ const [textColor, setTextColor] = useState("#1a237e");
             max="20"
             value={wordSpacing}
             onChange={(e) => setWordSpacing(+e.target.value)}
+            className="mt-1"
           />
         </label>
 
-        <label>
+        <label className="flex flex-col text-sm font-medium text-gray-700">
           Top Padding
           <input
             type="range"
@@ -168,6 +159,7 @@ const [textColor, setTextColor] = useState("#1a237e");
             max="200"
             value={topOffset}
             onChange={(e) => setTopOffset(+e.target.value)}
+            className="mt-1"
           />
         </label>
       </div>
@@ -177,48 +169,61 @@ const [textColor, setTextColor] = useState("#1a237e");
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="Type something amazing..."
+        className="w-full min-h-[100px] mb-6 p-4 text-base rounded-lg border border-gray-300 font-mono resize-y"
       />
 
-      {/* Notebook Preview */}
-      <div className="notebook-container" ref={previewRef}>
-        <div className="notebook-paper" style={previewStyle}>
-          {text || (
-            <span style={{ opacity: 0.3 }}>
-              Your handwriting preview will appear here.
-            </span>
-          )}
+      {/* Preview */}
+      <div className="w-full overflow-x-auto mb-6">
+        <div
+          ref={previewRef}
+          className="w-[794px] h-[1123px] bg-white mx-auto shadow-md"
+          style={{
+            backgroundImage:
+              "linear-gradient(to bottom, transparent 29px, #d0d0d0 30px)",
+            backgroundSize: "100% 30px",
+            padding: "40px",
+            boxSizing: "border-box",
+          }}
+        >
+          <div style={previewStyle}>
+            {text || (
+              <span className="opacity-30">
+                Your handwriting preview will appear here.
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Buttons */}
-      <div className="btns">
+      <div className="flex flex-wrap gap-4 items-center mb-6">
         <button
-          className="action"
+          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-sm rounded-md"
           onClick={() => setText("")}
           disabled={!text.trim()}
         >
           🧹 Clear
         </button>
         <button
-          className="action"
+          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md"
           onClick={downloadImage}
           disabled={!text.trim()}
         >
           📥 Download
         </button>
-        <span className="stats">
+        <span className="text-sm text-gray-600 ml-auto">
           📝 {text.length} Chars |{" "}
           {text.trim() ? text.trim().split(/\s+/).length : 0} Words
         </span>
       </div>
 
       {/* Footer */}
-      <footer className="footer">
+      <footer className="text-center text-xs text-gray-500 border-t pt-4">
         Writify © — Personal/Educational Use Only. No refunds. Powered by 💡
         <p>
           Writify is provided for personal, educational, and creative use only.
-          All content generated using this platform—whether handwritten images
-          or notes—remains the sole responsibility of the user.
+          All content generated using this platform remains the user's
+          responsibility.
         </p>
       </footer>
     </div>
