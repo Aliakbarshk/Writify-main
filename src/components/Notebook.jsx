@@ -10,8 +10,24 @@ function Notebook({ user, onLogout }) {
   const [topOffset, setTopOffset] = useState(40);
   const [fontFamily, setFontFamily] = useState("'Indie Flower', cursive");
   const [textColor, setTextColor] = useState("#1a237e");
+  const [fontWeight, setFontWeight] = useState("normal");
 
   const previewRef = useRef(null);
+
+  const penOptions = {
+    "Blue Pen": { color: "#1a237e", weight: "normal" },
+    "Dark Blue Pen": { color: "#0d1b5e", weight: "normal" },
+    "Red Pen": { color: "#d32f2f", weight: "normal" },
+    "Black Pen": { color: "#000000", weight: "normal" },
+    "Bold Black Pen": { color: "#000000", weight: "bold" },
+    "Thick Blue Pen": { color: "#1a237e", weight: "bold" },
+  };
+
+  const handlePenChange = (e) => {
+    const selected = penOptions[e.target.value];
+    setTextColor(selected.color);
+    setFontWeight(selected.weight);
+  };
 
   const downloadImage = () => {
     if (!text.trim()) return;
@@ -39,13 +55,16 @@ function Notebook({ user, onLogout }) {
     height: "100%",
     width: "100%",
     overflow: "hidden",
+    fontWeight,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-start",
   };
 
   const userDisplayName = user?.displayName || user?.email || "User";
 
   return (
     <div className="p-6 max-w-5xl mx-auto bg-white rounded-xl shadow-md">
-      {/* Header */}
       <header className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-semibold text-indigo-900">
@@ -68,7 +87,6 @@ function Notebook({ user, onLogout }) {
         </div>
       </header>
 
-      {/* Controls */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <label className="flex flex-col text-sm font-medium text-gray-700">
           Font
@@ -93,13 +111,18 @@ function Notebook({ user, onLogout }) {
         </label>
 
         <label className="flex flex-col text-sm font-medium text-gray-700">
-          Text Color
-          <input
-            type="color"
-            value={textColor}
-            onChange={(e) => setTextColor(e.target.value)}
-            className="mt-1 w-10 h-10 p-0 border-none"
-          />
+          Pen Style
+          <select
+            onChange={handlePenChange}
+            className="mt-1 p-2 border rounded-md"
+            defaultValue="Blue Pen"
+          >
+            {Object.keys(penOptions).map((pen) => (
+              <option key={pen} value={pen}>
+                {pen}
+              </option>
+            ))}
+          </select>
         </label>
 
         <label className="flex flex-col text-sm font-medium text-gray-700">
@@ -164,7 +187,6 @@ function Notebook({ user, onLogout }) {
         </label>
       </div>
 
-      {/* Text Input */}
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
@@ -172,7 +194,6 @@ function Notebook({ user, onLogout }) {
         className="w-full min-h-[100px] mb-6 p-4 text-base rounded-lg border border-gray-300 font-mono resize-y"
       />
 
-      {/* Preview */}
       <div className="w-full overflow-x-auto mb-6">
         <div
           ref={previewRef}
@@ -186,7 +207,11 @@ function Notebook({ user, onLogout }) {
           }}
         >
           <div style={previewStyle}>
-            {text || (
+            {text ? (
+              text
+                .split("\n")
+                .map((line, idx) => <div key={idx}>{line || " "}</div>)
+            ) : (
               <span className="opacity-30">
                 Your handwriting preview will appear here.
               </span>
@@ -195,7 +220,6 @@ function Notebook({ user, onLogout }) {
         </div>
       </div>
 
-      {/* Buttons */}
       <div className="flex flex-wrap gap-4 items-center mb-6">
         <button
           className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-sm rounded-md"
@@ -217,7 +241,6 @@ function Notebook({ user, onLogout }) {
         </span>
       </div>
 
-      {/* Footer */}
       <footer className="text-center text-xs text-gray-500 border-t pt-4">
         Writify © — Personal/Educational Use Only. No refunds. Powered by 💡
         <p>
