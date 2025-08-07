@@ -1,4 +1,3 @@
-// src/components/Login.jsx
 import React, { useState } from "react";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { auth, provider } from "../firebase";
@@ -29,48 +28,61 @@ function Login({ onLogin }) {
   };
 
   return (
-    <div className="bg-white shadow-xl rounded-lg p-8 w-full max-w-md">
-      <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
+    <div className="bg-[#222831] bg-opacity-90 backdrop-blur-md shadow-2xl border border-[#7D8D86] rounded-lg p-8 w-full max-w-md mx-auto">
+      <h2 className="text-3xl font-extrabold text-center text-[#7D8D86] mb-6 font-cursive select-none">
         Login to Writify
       </h2>
-      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
-      <form onSubmit={handleLogin} className="space-y-4">
+      {error && (
+        <p className="text-red-500 text-sm mb-4 text-center select-none">
+          {error}
+        </p>
+      )}
+
+      <form onSubmit={handleLogin} className="space-y-5">
         <div>
-          <label className="block mb-1 text-gray-600">Email</label>
+          <label className="block mb-2 text-[#7D8D86] font-medium select-none">
+            Email
+          </label>
           <input
             type="email"
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full px-4 py-3 rounded-md bg-[#1a1a1d] border border-[#57564F] text-white placeholder-[#57564F] focus:outline-none focus:ring-2 focus:ring-[#7D8D86] transition"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            placeholder="you@example.com"
+            autoComplete="email"
           />
         </div>
-
         <div>
-          <label className="block mb-1 text-gray-600">Password</label>
+          <label className="block mb-2 text-[#7D8D86] font-medium select-none">
+            Password
+          </label>
           <input
             type="password"
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full px-4 py-3 rounded-md bg-[#1a1a1d] border border-[#57564F] text-white placeholder-[#57564F] focus:outline-none focus:ring-2 focus:ring-[#7D8D86] transition"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            placeholder="********"
+            autoComplete="current-password"
           />
         </div>
-
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-md"
+          className="w-full bg-[#7D8D86] hover:bg-[#57564F] text-[#222831] font-semibold py-3 rounded-md transition shadow-md"
         >
           Login
         </button>
       </form>
 
-      <div className="mt-6 text-center text-gray-500">OR</div>
+      <div className="mt-6 text-center text-[#57564F] font-semibold select-none">
+        OR
+      </div>
 
       <button
         onClick={handleGoogleLogin}
-        className="w-full mt-4 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 rounded-md"
+        className="w-full mt-5 bg-[#dc4e41] hover:bg-[#b33729] text-white font-semibold py-3 rounded-md transition shadow-md"
       >
         Continue with Google
       </button>
