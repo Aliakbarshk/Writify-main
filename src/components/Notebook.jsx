@@ -68,10 +68,14 @@ function Notebook({ user, onLogout }) {
   const userDisplayName = user?.displayName || user?.email || "User";
 
   return (
-    <div className="min-h-screen w-full">
-      <nav className="w-full bg-white shadow flex justify-between items-center px-6 py-4">
-        <div className="text-sm text-gray-700">👤 {userDisplayName} | Plan: Free</div>
-        <div className="text-3xl font-bold text-indigo-700 font-cursive text-center">Writify</div>
+    <div className="min-h-screen w-full bg-darkbg">
+      <nav className="w-full  shadow flex justify-between items-center px-6 py-4">
+        <div className="text-sm text-gray-700">
+          👤 {userDisplayName} | Plan: Free
+        </div>
+        <div className="text-3xl font-bold text-indigo-700 font-cursive text-center">
+          Writify
+        </div>
         <button
           onClick={onLogout}
           className="text-sm px-3 py-1 bg-indigo-100 hover:bg-indigo-200 rounded-md"
@@ -80,9 +84,9 @@ function Notebook({ user, onLogout }) {
         </button>
       </nav>
 
-      <div className="p-6 max-w-5xl mx-auto bg-white rounded-xl shadow-md mt-6">
+      <div className="p-6 max-w-5xl mx-auto bg-[#222831] rounded-xl shadow-md mt-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-          <label className="flex flex-col text-sm font-medium text-gray-700">
+          <label className="flex flex-col text-sm font-medium text-white">
             Font
             <select
               value={fontFamily}
@@ -92,9 +96,15 @@ function Notebook({ user, onLogout }) {
               <option value="'Indie Flower', cursive">Indie Flower</option>
               <option value="Daniel, cursive">Daniel</option>
               <option value="'Dancing Script', cursive">Dancing Script</option>
-              <option value="'Architects Daughter', cursive">Architects Daughter</option>
-              <option value="'Gloria Hallelujah', cursive">Gloria Hallelujah</option>
-              <option value="'Shadows Into Light', cursive">Shadows Into Light</option>
+              <option value="'Architects Daughter', cursive">
+                Architects Daughter
+              </option>
+              <option value="'Gloria Hallelujah', cursive">
+                Gloria Hallelujah
+              </option>
+              <option value="'Shadows Into Light', cursive">
+                Shadows Into Light
+              </option>
             </select>
           </label>
 
@@ -106,7 +116,9 @@ function Notebook({ user, onLogout }) {
               defaultValue="Blue Pen"
             >
               {Object.keys(penOptions).map((pen) => (
-                <option key={pen} value={pen}>{pen}</option>
+                <option key={pen} value={pen}>
+                  {pen}
+                </option>
               ))}
             </select>
           </label>
@@ -198,22 +210,23 @@ function Notebook({ user, onLogout }) {
             ref={previewRef}
             className="w-[794px] h-[1123px] bg-white mx-auto shadow-md"
             style={{
-              backgroundImage: "linear-gradient(to bottom, transparent 29px, #d0d0d0 30px)",
+              backgroundImage:
+                "linear-gradient(to bottom, transparent 29px, #d0d0d0 30px)",
               backgroundSize: "100% 30px",
               padding: "40px",
               boxSizing: "border-box",
             }}
           >
             <div style={previewStyle}>
-              {text
-                ? text.split("\n").map((line, idx) => (
-                    <div key={idx}>{line || " "}</div>
-                  ))
-                : (
-                    <span className="opacity-30">
-                      Your handwriting preview will appear here.
-                    </span>
-                  )}
+              {text ? (
+                text
+                  .split("\n")
+                  .map((line, idx) => <div key={idx}>{line || " "}</div>)
+              ) : (
+                <span className="opacity-30">
+                  Your handwriting preview will appear here.
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -234,15 +247,16 @@ function Notebook({ user, onLogout }) {
             📥 Download
           </button>
           <span className="text-sm text-gray-600 ml-auto">
-            📝 {text.length} Chars | {text.trim() ? text.trim().split(/\s+/).length : 0} Words
+            📝 {text.length} Chars |{" "}
+            {text.trim() ? text.trim().split(/\s+/).length : 0} Words
           </span>
         </div>
 
         <footer className="text-center text-xs text-gray-500 border-t pt-4">
           Writify © — Personal/Educational Use Only. No refunds. Powered by 💡
           <p>
-            Writify is provided for personal, educational, and creative use only.
-            All content generated using this platform remains the user's
+            Writify is provided for personal, educational, and creative use
+            only. All content generated using this platform remains the user's
             responsibility.
           </p>
         </footer>

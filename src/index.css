@@ -15,13 +15,13 @@
   --border: #ccc;
 }
 
-body.dark {
+/* body.dark {
   --bg: #1c1c1c;
   --text: #a0c4ff;
   --primary: #4dabf7;
   --border: #444;
-}
-
+} */
+/* 
 body {
   margin: 0;
   font-family: sans-serif;
@@ -33,15 +33,15 @@ body {
   gap: 20px;
   transition: background 0.3s, color 0.3s;
   width: 100%;
-}
+} */
 
-h2 {
+/* h2 {
   margin: 0;
   color: var(--text);
   animation: fadeIn 1s ease-in-out;
-}
+} */
 
-@keyframes fadeIn {
+/* @keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(-20px);
@@ -50,9 +50,9 @@ h2 {
     opacity: 1;
     transform: translateY(0);
   }
-}
+} */
 
-.tabs,
+/* .tabs,
 .btns,
 .controls {
   display: flex;
@@ -60,9 +60,9 @@ h2 {
   flex-wrap: wrap;
   justify-content: center;
   animation: fadeIn 1s ease-in-out;
-}
+} */
 
-.tabs button,
+/* .tabs button,
 button.action {
   padding: 10px 20px;
   cursor: pointer;
@@ -71,7 +71,7 @@ button.action {
   background: var(--border);
   color: var(--text);
   transition: transform 0.2s;
-}
+} */
 
 .tabs button:hover,
 button.action:hover {
