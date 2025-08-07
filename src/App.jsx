@@ -10,7 +10,7 @@ import "./App.css";
 function App() {
   const [user, setUser] = useState(null);
   const [showSignup, setShowSignup] = useState(false);
-  alert('Still under devlopment Prototype:2')
+  alert('Welcome to beta test 2')
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
