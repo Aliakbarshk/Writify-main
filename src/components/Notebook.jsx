@@ -15,6 +15,7 @@ function Notebook({ user, onLogout }) {
   const [textAlign, setTextAlign] = useState("left");
 
   const previewRef = useRef(null);
+  const myTimeout = setTimeout(alert("for phone Users(📱) : If you are facing problems on your phone flip it and use it in landscape mode or turn on desktop mode "), 60000);
 
   const penOptions = {
     "Blue Pen": { color: "#1a237e", weight: "normal" },
