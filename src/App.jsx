@@ -11,6 +11,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [showSignup, setShowSignup] = useState(false);
   alert('Welcome to beta test 2')
+  alert('For the phone users : if you get any canvas/page related issues kindly flip your phone or use it in desktop mode')
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
