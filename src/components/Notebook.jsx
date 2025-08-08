@@ -1,7 +1,10 @@
 import React, { useRef, useState } from "react";
 import html2canvas from "html2canvas";
 import './Notebook.css'
-
+import Policies from "./Policies";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router";
+import { Link } from "react-router-dom";
 function Notebook({ user, onLogout }) {
   const [text, setText] = useState("");
   const [fontSize, setFontSize] = useState(22);
@@ -272,14 +275,22 @@ function Notebook({ user, onLogout }) {
         </div>
 
         <footer className="text-center text-xs text-gray-400 border-t border-gray-700 pt-4">
-          Writify © — Personal/Educational Use Only. No refunds. Powered by 💡
+          Writify © — Personal/Educational Use Only. No refunds. because it is a
+          digital service/tool
           <p>
             Writify is provided for personal, educational, and creative use
             only. All content generated using this platform remains the user's
             responsibility.
           </p>
+          <div className="policiesaboutus flex gap-[10px] w-[100%] justify-center">
+            <Link className="text-[15px] hover:underline cursor-pointer" to="/Policies">Policies</Link>
+            <a className="text-[15px] hover:underline cursor-pointer">
+              About us
+            </a>
+          </div>
         </footer>
       </div>
+      
     </div>
   );
 }

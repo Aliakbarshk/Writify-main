@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Signup from "./components/signup";
 import Login from "./components/Login";
 import Notebook from "./components/Notebook";
+import Policies from "./components/Policies";
 import { auth } from "./firebase";
-import './index.css'; // or './App.css' if that's where your tailwind directives live
-
+import "./index.css";
 import "./App.css";
 
 function App() {
   const [user, setUser] = useState(null);
   const [showSignup, setShowSignup] = useState(false);
-  alert('Welcome to beta test 2')
-  alert('For the phone users : if you get any canvas/page related issues kindly flip your phone or use it in desktop mode')
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -31,25 +30,36 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      {!user ? (
-        showSignup ? (
-          <Signup onClose={() => setShowSignup(false)} />
-        ) : (
-          <div className="flex flex-col items-center">
-            <Login onLogin={handleLogin} />
-            <button
-              onClick={() => setShowSignup(true)}
-              className="mt-4 text-blue-600 underline"
-            >
-              Don't have an account? Signup
-            </button>
-          </div>
-        )
-      ) : (
-        <Notebook onLogout={handleLogout} />
-      )}
-    </div>
+    <BrowserRouter>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+        <Routes>
+          <Route
+            path="/"
+            element={
+              !user ? (
+                showSignup ? (
+                  <Signup onClose={() => setShowSignup(false)} />
+                ) : (
+                  <div className="flex flex-col items-center">
+                    <Login onLogin={handleLogin} />
+                    <button
+                      onClick={() => setShowSignup(true)}
+                      className="mt-4 text-blue-600 underline"
+                    >
+                      Don't have an account? Signup
+                    </button>
+                  </div>
+                )
+              ) : (
+                <Notebook onLogout={handleLogout} />
+              )
+            }
+          />
+          <Route path="/policies" element={<Policies />} />
+          {/* Add other pages like About, Contact here if needed */}
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 
