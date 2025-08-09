@@ -672,7 +672,7 @@ function Notebook({ user, onLogout }) {
               type="checkbox"
               checked={autoSave}
               onChange={(e) => setAutoSave(e.target.checked)}
-              className="cursor-pointer"
+              className="cursor-pointer "
             />
             AutoSave
           </label>
@@ -745,7 +745,8 @@ function Notebook({ user, onLogout }) {
 
           {pages[currentPage]?.style === "custom" && (
             <label className="flex items-center gap-2 text-sm text-white cursor-pointer border-2-transparent rounded-3xl p-2 bg-[#393E46] pl-23">
-              Upload Custom background:
+              (beta)Upload Custom background:
+              
               <input
                 type="file"
                 accept="image/*"
