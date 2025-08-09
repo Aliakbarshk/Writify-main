@@ -8,28 +8,55 @@ import { BrowserRouter } from "react-router";
 import { Link } from "react-router-dom";
 
 function Notebook({ user, onLogout }) {
-  const [text, setText] = useState("");
+  // GLOBAL styling states (same as you had)
   const [fontSize, setFontSize] = useState(22);
   const [lineHeight, setLineHeight] = useState(30);
   const [letterSpacing, setLetterSpacing] = useState(0);
   const [wordSpacing, setWordSpacing] = useState(0);
   const [topOffset, setTopOffset] = useState(40);
+
+  // Added left and right padding states
+  const [leftPadding, setLeftPadding] = useState(40);
+  const [rightPadding, setRightPadding] = useState(40);
+
   const [fontFamily, setFontFamily] = useState("'Indie Flower', cursive");
   const [textColor, setTextColor] = useState("#1a237e");
   const [fontWeight, setFontWeight] = useState("normal");
   const [textAlign, setTextAlign] = useState("left");
 
-  // NEW features state
+  // Features states
   const [autoSave, setAutoSave] = useState(true);
   const [saveNotice, setSaveNotice] = useState("");
   const [customColor, setCustomColor] = useState("#1a237e");
 
-  // Undo/Redo stacks
+  // Undo/Redo stacks (text-level; we'll push per-page text before change)
   const [undoStack, setUndoStack] = useState([]);
   const [redoStack, setRedoStack] = useState([]);
 
-  const previewRef = useRef(null);
+  // Pages: each page has its own text, style and customBg
+  const [pages, setPages] = useState(() => {
+    try {
+      const saved = localStorage.getItem("writify_pages_v1");
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [
+      {
+        text: "",
+        style: "ruled", // default paper style (kept as yours)
+        customBg: null,
+      },
+    ];
+  });
+  const [currentPage, setCurrentPage] = useState(0);
 
+  // Local text state mirrors current page text for textarea binding
+  const [text, setText] = useState(pages[0]?.text || "");
+
+  // preview refs for each page (used for html2canvas)
+  const previewRefs = useRef([]);
+  const previewRefSingle = useRef(null); // maintain for compatibility with old single-preview code
+
+  // Pen options (from your code)
   const penOptions = {
     "Blue Pen": { color: "#1a237e", weight: "normal" },
     "Dark Blue Pen": { color: "#0d1b5e", weight: "normal" },
@@ -41,162 +68,267 @@ function Notebook({ user, onLogout }) {
     "Purple Pen": { color: "#6a1b9a", weight: "normal" },
   };
 
+  // Page style presets
+  const pageStyles = {
+    plain: { background: "#fff" },
+    ruled: {
+      backgroundImage:
+        "linear-gradient(to bottom, transparent 29px, #d0d0d0 30px)",
+      backgroundSize: "100% 30px",
+    },
+    dotted: {
+      backgroundImage: "radial-gradient(#d0d0d0 1px, transparent 1px)",
+      backgroundSize: "12px 12px",
+    },
+    grid: {
+      backgroundImage:
+        "linear-gradient(#d0d0d0 1px, transparent 1px), linear-gradient(90deg, #d0d0d0 1px, transparent 1px)",
+      backgroundSize: "24px 24px",
+    },
+    parchment: {
+      backgroundImage: "url('https://i.ibb.co/RBH0Xff/parchment.jpg')",
+      backgroundSize: "cover",
+    },
+    dark: { background: "#f7f7f7" }, // keep light preview for export; actual theme still controlled by UI
+  };
+
+  // apply pen selection
   const handlePenChange = (e) => {
     const selected = penOptions[e.target.value];
+    if (!selected) return;
     setTextColor(selected.color);
     setCustomColor(selected.color);
     setFontWeight(selected.weight);
   };
 
-  // push to undo stack (store previous value)
-  const pushUndo = useCallback((prev) => {
+  // push to undo stack (store previous value along with page index)
+  const pushUndo = useCallback((prevText, pageIndex) => {
     setUndoStack((s) => {
-      const next = [...s, prev];
-      // keep limited history
+      const next = [...s, { text: prevText, page: pageIndex }];
       if (next.length > 50) next.shift();
       return next;
     });
-    // clearing redo on new edit
-    setRedoStack([]);
+    setRedoStack([]); // clear redo on new action
   }, []);
 
-  // handle text changes with undo stack
+  // handle textarea changes (updates pages[currentPage].text)
   const handleTextChange = (val) => {
-    pushUndo(text);
+    pushUndo(pages[currentPage].text, currentPage);
     setText(val);
+    setPages((p) => {
+      const next = [...p];
+      next[currentPage] = { ...next[currentPage], text: val };
+      return next;
+    });
   };
 
-  // Undo
+  // Undo / Redo (works across pages)
   const handleUndo = () => {
     setUndoStack((u) => {
       if (u.length === 0) return u;
-      const prev = u[u.length - 1];
-      setRedoStack((r) => [text, ...r]);
-      setText(prev);
+      const last = u[u.length - 1];
+      setRedoStack((r) => [
+        { text: pages[last.page].text, page: last.page },
+        ...r,
+      ]);
+      // apply undone text to that page and switch to page
+      setPages((p) => {
+        const next = [...p];
+        next[last.page] = { ...next[last.page], text: last.text };
+        return next;
+      });
+      setText(last.text);
+      setCurrentPage(last.page);
       return u.slice(0, u.length - 1);
     });
   };
 
-  // Redo
   const handleRedo = () => {
     setRedoStack((r) => {
       if (r.length === 0) return r;
-      const next = r[0];
-      setUndoStack((u) => [...u, text]);
-      setText(next);
+      const first = r[0];
+      setUndoStack((u) => [
+        ...u,
+        { text: pages[first.page].text, page: first.page },
+      ]);
+      setPages((p) => {
+        const next = [...p];
+        next[first.page] = { ...next[first.page], text: first.text };
+        return next;
+      });
+      setText(first.text);
+      setCurrentPage(first.page);
       return r.slice(1);
     });
   };
 
-  // Download PNG (existing)
-  const downloadImage = () => {
-    if (!text.trim()) return;
-    html2canvas(previewRef.current, {
+  // Color picker sync
+  const handleColorChange = (e) => {
+    setCustomColor(e.target.value);
+    setTextColor(e.target.value);
+  };
+
+  // Page background upload (per-page)
+  const handleBgUpload = (e, pageIndex) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setPages((p) => {
+        const next = [...p];
+        next[pageIndex] = {
+          ...next[pageIndex],
+          customBg: ev.target.result,
+          style: "custom",
+        };
+        return next;
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // get style object for preview div (per-page)
+  const getPageStyleObj = (page) => {
+    if (page.style === "custom" && page.customBg) {
+      return {
+        backgroundImage: `url(${page.customBg})`,
+        backgroundSize: "100%", // ya "cover" jo chahiye wo use karo
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center",
+        backgroundColor: "#fff", // white background safe rakhna
+      };
+    }
+    return pageStyles[page.style] || pageStyles.ruled;
+  };
+
+  // Add / Remove / Navigate pages
+  const addPage = () => {
+    setPages((p) => [...p, { text: "", style: "ruled", customBg: null }]);
+    setCurrentPage(pages.length); // navigate to new page
+    setText(""); // clear textarea
+  };
+
+  const deletePage = (index) => {
+    if (pages.length === 1) {
+      // just clear if only one page
+      pushUndo(pages[0].text, 0);
+      setPages([{ text: "", style: "ruled", customBg: null }]);
+      setCurrentPage(0);
+      setText("");
+      return;
+    }
+    const next = pages.filter((_, i) => i !== index);
+    setPages(next);
+    const newIndex = Math.max(0, index - 1);
+    setCurrentPage(newIndex);
+    setText(next[newIndex]?.text || "");
+  };
+
+  const goNext = () => {
+    const next = Math.min(pages.length - 1, currentPage + 1);
+    setCurrentPage(next);
+  };
+  const goPrev = () => {
+    const prev = Math.max(0, currentPage - 1);
+    setCurrentPage(prev);
+  };
+
+  // Sync local text when currentPage changes
+  useEffect(() => {
+    setText(pages[currentPage]?.text || "");
+  }, [currentPage, pages]);
+
+  // Download single page image (current page)
+  const downloadImage = async () => {
+    if (!pages[currentPage].text.trim()) return;
+    const el = previewRefs.current[currentPage];
+    if (!el) return;
+    const canvas = await html2canvas(el, {
       scale: 3,
       useCORS: true,
       backgroundColor: "#fff",
-    }).then((canvas) => {
-      const link = document.createElement("a");
-      link.download = "writify-note.png";
-      link.href = canvas.toDataURL("image/png");
-      link.click();
     });
-  };
-
-  // NEW: Download PDF (multipage if tall)
-  const downloadPDF = async () => {
-    if (!text.trim()) return;
-    const canvas = await html2canvas(previewRef.current, {
-      scale: 3,
-      useCORS: true,
-      backgroundColor: "#fff",
-    });
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pdfWidth = 210;
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-    // If content fits one page
-    if (pdfHeight <= 297) {
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    } else {
-      // split in pages
-      let remainingHeight = canvas.height;
-      let position = 0;
-      const pageCanvas = document.createElement("canvas");
-      const pageCtx = pageCanvas.getContext("2d");
-      const pageHeightPx = (canvas.width * 297) / pdfWidth; // px per page for given ratio
-      pageCanvas.width = canvas.width;
-      pageCanvas.height = pageHeightPx;
-      while (remainingHeight > 0) {
-        pageCtx.clearRect(0, 0, pageCanvas.width, pageCanvas.height);
-        pageCtx.drawImage(
-          canvas,
-          0,
-          position,
-          canvas.width,
-          pageHeightPx,
-          0,
-          0,
-          canvas.width,
-          pageHeightPx
-        );
-        const img = pageCanvas.toDataURL("image/png");
-        pdf.addImage(img, "PNG", 0, 0, pdfWidth, 297);
-        remainingHeight -= pageHeightPx;
-        position += pageHeightPx;
-        if (remainingHeight > 0) pdf.addPage();
-      }
-    }
-    pdf.save("writify-note.pdf");
-  };
-
-  // NEW: Copy text to clipboard
-  const copyText = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setSaveNotice("Copied to clipboard!");
-      setTimeout(() => setSaveNotice(""), 1500);
-    } catch (e) {
-      setSaveNotice("Copy failed");
-      setTimeout(() => setSaveNotice(""), 1500);
-    }
-  };
-
-  // NEW: Export plain .txt
-  const exportTxt = () => {
-    if (!text.trim()) return;
-    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
     const link = document.createElement("a");
-    link.download = "writify-note.txt";
+    link.download = `writify-page-${currentPage + 1}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  };
+
+  // Download full notebook PDF (all pages)
+  const downloadPDF = async () => {
+    // require at least one non-empty page
+    if (!pages.some((pg) => pg.text.trim())) return;
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+
+    for (let i = 0; i < pages.length; i++) {
+      const el = previewRefs.current[i];
+      if (!el) continue;
+      // temporarily ensure element height fits A4 ratio for consistent output (not changing UI)
+      const canvas = await html2canvas(el, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: "#fff",
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      if (i > 0) pdf.addPage();
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    }
+    pdf.save("writify-notebook.pdf");
+  };
+
+  // Export TXT for current page
+  const exportTxt = () => {
+    const content = pages[currentPage]?.text || "";
+    if (!content.trim()) return;
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const link = document.createElement("a");
+    link.download = `writify-page-${currentPage + 1}.txt`;
     link.href = URL.createObjectURL(blob);
     link.click();
     URL.revokeObjectURL(link.href);
   };
 
-  // Auto-save to localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem("writify_text_v1");
-    if (saved) setText(saved);
-    const savedColor = localStorage.getItem("writify_color_v1");
-    if (savedColor) {
-      setTextColor(savedColor);
-      setCustomColor(savedColor);
+  // Copy current page text
+  const copyText = async () => {
+    try {
+      await navigator.clipboard.writeText(pages[currentPage]?.text || "");
+      setSaveNotice("Copied to clipboard!");
+      setTimeout(() => setSaveNotice(""), 1500);
+    } catch {
+      setSaveNotice("Copy failed");
+      setTimeout(() => setSaveNotice(""), 1500);
     }
-  }, []);
+  };
 
-  // Save when text changes (debounced)
+  // Autosave pages to localStorage (debounced)
   useEffect(() => {
     if (!autoSave) return;
     const t = setTimeout(() => {
-      localStorage.setItem("writify_text_v1", text);
-      localStorage.setItem("writify_color_v1", customColor);
-      setSaveNotice("Saved locally");
-      setTimeout(() => setSaveNotice(""), 1200);
+      try {
+        localStorage.setItem("writify_pages_v1", JSON.stringify(pages));
+        localStorage.setItem("writify_color_v1", customColor);
+        setSaveNotice("Saved locally");
+        setTimeout(() => setSaveNotice(""), 900);
+      } catch (e) {}
     }, 800);
     return () => clearTimeout(t);
-  }, [text, customColor, autoSave]);
+  }, [pages, customColor, autoSave]);
 
-  // keyboard shortcuts: Ctrl+Z / Ctrl+Y / Ctrl+S / Ctrl+C
+  // load saved color on mount (keeps your previous behavior)
+  useEffect(() => {
+    try {
+      const savedColor = localStorage.getItem("writify_color_v1");
+      if (savedColor) {
+        setTextColor(savedColor);
+        setCustomColor(savedColor);
+      }
+    } catch (e) {}
+  }, []);
+
+  // keyboard shortcuts: Ctrl+Z / Ctrl+Y / Ctrl+S
   useEffect(() => {
     const handler = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "z") {
@@ -207,21 +339,13 @@ function Notebook({ user, onLogout }) {
         handleRedo();
       } else if ((e.ctrlKey || e.metaKey) && e.key === "s") {
         e.preventDefault();
-        // quick save to file (txt)
+        // quick save current page as txt
         exportTxt();
-      } else if ((e.ctrlKey || e.metaKey) && e.key === "c") {
-        // let browser handle normal copy; do nothing special
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [handleUndo, handleRedo, text]);
-
-  // Sync color picker and textColor
-  const handleColorChange = (e) => {
-    setCustomColor(e.target.value);
-    setTextColor(e.target.value);
-  };
+  }, [handleUndo, handleRedo, pages]);
 
   const previewStyle = {
     fontFamily,
@@ -230,6 +354,8 @@ function Notebook({ user, onLogout }) {
     letterSpacing: `${letterSpacing}px`,
     wordSpacing: `${wordSpacing}px`,
     paddingTop: `${topOffset}px`,
+    paddingLeft: `${leftPadding}px`, // Added left padding here
+    paddingRight: `${rightPadding}px`, // Added right padding here
     color: textColor,
     whiteSpace: "pre-wrap",
     height: "100%",
@@ -261,7 +387,7 @@ function Notebook({ user, onLogout }) {
           WRITIFYy
         </div>
         <div className="flex items-center gap-3 text-xs sm:text-sm">
-          <span className="rounded-xl bg-[#F5BD02] px-3 py-1 text-[#222831] font-bold select-none">
+          <span className="rounded-xl bg-[#7D8D86] px-3 py-1 text-[#222831] font-bold select-none">
             pro
           </span>
           <button
@@ -274,9 +400,10 @@ function Notebook({ user, onLogout }) {
         </div>
       </nav>
 
-      {/* Content */}
+      {/* Content (UI structure maintained) */}
       <div className="p-6 max-w-5xl mx-auto bg-[#222831] rounded-xl shadow-md mt-6 text-white">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+          {/* Font selector (unchanged) */}
           <label className="flex flex-col text-sm font-medium text-white">
             Font
             <select
@@ -299,6 +426,7 @@ function Notebook({ user, onLogout }) {
             </select>
           </label>
 
+          {/* Pen Style (unchanged) */}
           <label className="flex flex-col text-sm font-medium text-white">
             Pen Style
             <select
@@ -314,6 +442,7 @@ function Notebook({ user, onLogout }) {
             </select>
           </label>
 
+          {/* Text Alignment (unchanged) */}
           <label className="flex flex-col text-sm font-medium text-white">
             Text Alignment
             <select
@@ -327,6 +456,7 @@ function Notebook({ user, onLogout }) {
             </select>
           </label>
 
+          {/* Font Size */}
           <label className="flex flex-col text-sm font-medium text-white">
             Font Size
             <input
@@ -339,6 +469,7 @@ function Notebook({ user, onLogout }) {
             />
           </label>
 
+          {/* Line Height */}
           <label className="flex flex-col text-sm font-medium text-white">
             Line Height
             <input
@@ -351,6 +482,7 @@ function Notebook({ user, onLogout }) {
             />
           </label>
 
+          {/* Letter Spacing */}
           <label className="flex flex-col text-sm font-medium text-white">
             Letter Spacing
             <input
@@ -364,6 +496,7 @@ function Notebook({ user, onLogout }) {
             />
           </label>
 
+          {/* Word Spacing */}
           <label className="flex flex-col text-sm font-medium text-white">
             Word Spacing
             <input
@@ -376,6 +509,7 @@ function Notebook({ user, onLogout }) {
             />
           </label>
 
+          {/* Top Padding */}
           <label className="flex flex-col text-sm font-medium text-white">
             Top Padding
             <input
@@ -387,8 +521,35 @@ function Notebook({ user, onLogout }) {
               className="mt-1 cursor-pointer"
             />
           </label>
+
+          {/* Left Padding */}
+          <label className="flex flex-col text-sm font-medium text-white">
+            Left Padding
+            <input
+              type="range"
+              min="0"
+              max="200"
+              value={leftPadding}
+              onChange={(e) => setLeftPadding(+e.target.value)}
+              className="mt-1 cursor-pointer"
+            />
+          </label>
+
+          {/* Right Padding */}
+          <label className="flex flex-col text-sm font-medium text-white">
+            Right Padding
+            <input
+              type="range"
+              min="0"
+              max="200"
+              value={rightPadding}
+              onChange={(e) => setRightPadding(+e.target.value)}
+              className="mt-1 cursor-pointer"
+            />
+          </label>
         </div>
 
+        {/* Textarea */}
         <textarea
           value={text}
           onChange={(e) => handleTextChange(e.target.value)}
@@ -397,22 +558,27 @@ function Notebook({ user, onLogout }) {
           className="w-full min-h-[100px] mb-6 p-4 text-base rounded-lg border border-gray-500 bg-[#2d2f34] text-white font-mono resize-y"
         />
 
+        {/* Preview area */}
         <div className="w-full overflow-x-auto mb-6">
           <div
-            ref={previewRef}
+            ref={(el) => {
+              previewRefs.current[currentPage] = el;
+              previewRefSingle.current = el;
+            }}
             className="w-[794px] h-[1123px] bg-white mx-auto shadow-md"
             style={{
-              backgroundImage:
-                "linear-gradient(to bottom, transparent 29px, #d0d0d0 30px)",
-              backgroundSize: "100% 30px",
-              padding: "40px",
+              ...getPageStyleObj(pages[currentPage] || { style: "ruled" }),
+              backgroundSize:
+                pages[currentPage]?.style === "ruled" ? "100% 30px" : undefined,
+              padding: 0, // remove default padding here, since we control padding inside previewStyle
               boxSizing: "border-box",
               fontFamily,
+              position: "relative",
             }}
           >
             <div style={previewStyle}>
-              {text ? (
-                text
+              {pages[currentPage]?.text ? (
+                pages[currentPage].text
                   .split("\n")
                   .map((line, idx) => <div key={idx}>{line || " "}</div>)
               ) : (
@@ -424,19 +590,24 @@ function Notebook({ user, onLogout }) {
           </div>
         </div>
 
+        {/* Controls row */}
         <div className="flex flex-wrap gap-4 items-center mb-6">
           <button
             className="px-4 py-2 bg-[#393e46] hover:bg-[#4c515a] text-white text-sm rounded-md cursor-pointer"
             onClick={() => {
-              pushUndo(text);
+              pushUndo(pages[currentPage].text, currentPage);
+              setPages((p) => {
+                const next = [...p];
+                next[currentPage] = { ...next[currentPage], text: "" };
+                return next;
+              });
               setText("");
             }}
-            disabled={!text.trim()}
+            disabled={!pages[currentPage]?.text?.trim()}
           >
             🧹 Clear
           </button>
 
-          {/* NEW: Undo / Redo */}
           <button
             className="px-3 py-2 bg-[#5a5a5a] hover:bg-[#6e6e6e] text-white text-sm rounded-md cursor-pointer"
             onClick={handleUndo}
@@ -454,7 +625,6 @@ function Notebook({ user, onLogout }) {
             ↷ Redo
           </button>
 
-          {/* NEW: Color picker (keeps UI compact) */}
           <label className="flex items-center gap-2 text-sm">
             <input
               type="color"
@@ -468,16 +638,15 @@ function Notebook({ user, onLogout }) {
           <button
             className="px-4 py-2 bg-[#00adb5] hover:bg-[#00c3cc] text-white text-sm rounded-md cursor-pointer"
             onClick={downloadImage}
-            disabled={!text.trim()}
+            disabled={!pages[currentPage]?.text?.trim()}
           >
             📥 Download (PNG)
           </button>
 
-          {/* NEW: PDF, Copy, Export TXT */}
           <button
             className="px-4 py-2 bg-[#7b61ff] hover:bg-[#8c76ff] text-white text-sm rounded-md cursor-pointer"
             onClick={downloadPDF}
-            disabled={!text.trim()}
+            disabled={!pages.some((pg) => pg.text.trim())}
           >
             📄 Export PDF
           </button>
@@ -485,7 +654,7 @@ function Notebook({ user, onLogout }) {
           <button
             className="px-4 py-2 bg-[#3b82f6] hover:bg-[#60a5fa] text-white text-sm rounded-md cursor-pointer"
             onClick={copyText}
-            disabled={!text.trim()}
+            disabled={!pages[currentPage]?.text?.trim()}
           >
             📋 Copy
           </button>
@@ -493,12 +662,11 @@ function Notebook({ user, onLogout }) {
           <button
             className="px-4 py-2 bg-[#6b7280] hover:bg-[#9ca3af] text-white text-sm rounded-md cursor-pointer"
             onClick={exportTxt}
-            disabled={!text.trim()}
+            disabled={!pages[currentPage]?.text?.trim()}
           >
             📁 Export TXT
           </button>
 
-          {/* Autosave toggle compact */}
           <label className="ml-2 text-sm flex items-center gap-2">
             <input
               type="checkbox"
@@ -509,13 +677,104 @@ function Notebook({ user, onLogout }) {
             AutoSave
           </label>
 
+          <div className="flex items-center gap-2 ml-2">
+            <button
+              onClick={goPrev}
+              className="px-2 py-1 bg-[#2d2f34] rounded text-sm hover:bg-[#3b3f46]"
+              title="Previous Page"
+            >
+              ◀
+            </button>
+            <span className="text-sm text-gray-300">
+              Page {currentPage + 1} / {pages.length}
+            </span>
+            <button
+              onClick={goNext}
+              className="px-2 py-1 bg-[#2d2f34] rounded text-sm hover:bg-[#3b3f46]"
+              title="Next Page"
+            >
+              ▶
+            </button>
+            <button
+              onClick={addPage}
+              className="px-2 py-1 bg-[#1f6feb] rounded text-sm hover:bg-[#2677ff]"
+              title="Add Page"
+            >
+              +Page
+            </button>
+            <button
+              onClick={() => deletePage(currentPage)}
+              className="px-2 py-1 bg-[#ff5c5c] rounded text-sm hover:bg-[#ff7b7b]"
+              title="Delete Page"
+            >
+              🗑
+            </button>
+          </div>
+
           <span className="text-sm text-gray-400 ml-auto">
-            📝 {text.length} Chars |{" "}
-            {text.trim() ? text.trim().split(/\s+/).length : 0} Words
+            📝 {pages[currentPage]?.text?.length || 0} Chars |{" "}
+            {pages[currentPage]?.text?.trim()
+              ? pages[currentPage].text.trim().split(/\s+/).length
+              : 0}{" "}
+            Words
           </span>
         </div>
 
-        {/* small save/copy notice */}
+        {/* Page style selector */}
+        <div className="flex gap-3 items-center mb-4">
+          <label className="flex items-center gap-2 text-sm text-white">
+            Page Style:
+            <select
+              value={pages[currentPage]?.style || "ruled"}
+              onChange={(e) => {
+                const style = e.target.value;
+                setPages((p) => {
+                  const next = [...p];
+                  next[currentPage] = { ...next[currentPage], style };
+                  if (style !== "custom") next[currentPage].customBg = null;
+                  return next;
+                });
+              }}
+              className="mt-1 p-2 bg-[#2d2f34] text-white border border-gray-600 rounded-md cursor-pointer"
+            >
+              <option value="plain">Plain</option>
+              <option value="ruled">Ruled</option>
+              <option value="custom">Custom Image</option>
+            </select>
+          </label>
+
+          {pages[currentPage]?.style === "custom" && (
+            <label className="flex items-center gap-2 text-sm text-white cursor-pointer border-2-transparent rounded-3xl p-2 bg-[#393E46] pl-23">
+              Upload Custom background:
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleBgUpload(e, currentPage)}
+                className="mt-1"
+              />
+            </label>
+          )}
+
+          {/* small preview thumbnail of current background */}
+          <div
+            style={{
+              width: 48,
+              height: 34,
+              borderRadius: 6,
+              border: "1px solid #444",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                ...getPageStyleObj(pages[currentPage] || { style: "ruled" }),
+              }}
+            />
+          </div>
+        </div>
+
         {saveNotice && (
           <div className="text-xs text-center text-green-400 mb-4">
             {saveNotice}
