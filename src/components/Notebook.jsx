@@ -226,7 +226,7 @@ function Notebook({ user, onLogout }) {
           className="w-full min-h-[100px] mb-6 p-4 text-base rounded-lg border border-gray-500 bg-[#2d2f34] text-white font-mono resize-y"
         />
 
-        <div className="w-full overflow-x-auto mb-6">
+        <div className="w-full overflow-x-auto mb-6">                         
           <div
             ref={previewRef}
             className="w-[794px] h-[1123px] bg-white mx-auto shadow-md"
