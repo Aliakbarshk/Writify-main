@@ -3,19 +3,15 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import "./Notebook.css";
 import Policies from "./Policies";
-import ReactDOM from "react-dom/client";
-import { BrowserRouter } from "react-router";
 import { Link } from "react-router-dom";
 
 function Notebook({ user, onLogout }) {
-  // GLOBAL styling states (same as you had)
+  // GLOBAL styling states
   const [fontSize, setFontSize] = useState(22);
   const [lineHeight, setLineHeight] = useState(30);
   const [letterSpacing, setLetterSpacing] = useState(0);
   const [wordSpacing, setWordSpacing] = useState(0);
   const [topOffset, setTopOffset] = useState(40);
-
-  // Added left and right padding states
   const [leftPadding, setLeftPadding] = useState(40);
   const [rightPadding, setRightPadding] = useState(40);
 
@@ -24,39 +20,33 @@ function Notebook({ user, onLogout }) {
   const [fontWeight, setFontWeight] = useState("normal");
   const [textAlign, setTextAlign] = useState("left");
 
-  // Features states
   const [autoSave, setAutoSave] = useState(true);
   const [saveNotice, setSaveNotice] = useState("");
   const [customColor, setCustomColor] = useState("#1a237e");
-
-  // Undo/Redo stacks (text-level; we'll push per-page text before change)
   const [undoStack, setUndoStack] = useState([]);
   const [redoStack, setRedoStack] = useState([]);
 
-  // Pages: each page has its own text, style and customBg
+  // Pages: each page has its own text, style, customBg, and image adjustments
   const [pages, setPages] = useState(() => {
     try {
-      const saved = localStorage.getItem("writify_pages_v1");
+      const saved = localStorage.getItem("writify_pages_v3");
       if (saved) return JSON.parse(saved);
     } catch (e) {}
     return [
       {
         text: "",
-        style: "ruled", // default paper style (kept as yours)
+        style: "ruled",
         customBg: null,
+        bgAdjust: { scale: 1, rotate: 0, offsetX: 0, offsetY: 0 },
       },
     ];
   });
   const [currentPage, setCurrentPage] = useState(0);
-
-  // Local text state mirrors current page text for textarea binding
   const [text, setText] = useState(pages[0]?.text || "");
 
-  // preview refs for each page (used for html2canvas)
   const previewRefs = useRef([]);
-  const previewRefSingle = useRef(null); // maintain for compatibility with old single-preview code
+  const previewRefSingle = useRef(null);
 
-  // Pen options (from your code)
   const penOptions = {
     "Blue Pen": { color: "#1a237e", weight: "normal" },
     "Dark Blue Pen": { color: "#0d1b5e", weight: "normal" },
@@ -68,14 +58,13 @@ function Notebook({ user, onLogout }) {
     "Purple Pen": { color: "#6a1b9a", weight: "normal" },
   };
 
-  // Page style presets
   const pageStyles = {
-    plain: { background: "#fff" },
     ruled: {
       backgroundImage:
         "linear-gradient(to bottom, transparent 29px, #d0d0d0 30px)",
       backgroundSize: "100% 30px",
     },
+    plain: { background: "#fff" },
     dotted: {
       backgroundImage: "radial-gradient(#d0d0d0 1px, transparent 1px)",
       backgroundSize: "12px 12px",
@@ -89,10 +78,10 @@ function Notebook({ user, onLogout }) {
       backgroundImage: "url('https://i.ibb.co/RBH0Xff/parchment.jpg')",
       backgroundSize: "cover",
     },
-    dark: { background: "#f7f7f7" }, // keep light preview for export; actual theme still controlled by UI
+    dark: { background: "#f7f7f7" },
   };
 
-  // apply pen selection
+  // Handler for pen selection
   const handlePenChange = (e) => {
     const selected = penOptions[e.target.value];
     if (!selected) return;
@@ -101,17 +90,16 @@ function Notebook({ user, onLogout }) {
     setFontWeight(selected.weight);
   };
 
-  // push to undo stack (store previous value along with page index)
+  // Undo functionality
   const pushUndo = useCallback((prevText, pageIndex) => {
     setUndoStack((s) => {
       const next = [...s, { text: prevText, page: pageIndex }];
       if (next.length > 50) next.shift();
       return next;
     });
-    setRedoStack([]); // clear redo on new action
+    setRedoStack([]);
   }, []);
 
-  // handle textarea changes (updates pages[currentPage].text)
   const handleTextChange = (val) => {
     pushUndo(pages[currentPage].text, currentPage);
     setText(val);
@@ -122,7 +110,6 @@ function Notebook({ user, onLogout }) {
     });
   };
 
-  // Undo / Redo (works across pages)
   const handleUndo = () => {
     setUndoStack((u) => {
       if (u.length === 0) return u;
@@ -131,7 +118,6 @@ function Notebook({ user, onLogout }) {
         { text: pages[last.page].text, page: last.page },
         ...r,
       ]);
-      // apply undone text to that page and switch to page
       setPages((p) => {
         const next = [...p];
         next[last.page] = { ...next[last.page], text: last.text };
@@ -162,13 +148,13 @@ function Notebook({ user, onLogout }) {
     });
   };
 
-  // Color picker sync
+  // Color picker
   const handleColorChange = (e) => {
     setCustomColor(e.target.value);
     setTextColor(e.target.value);
   };
 
-  // Page background upload (per-page)
+  // Only allow background image upload for custom image
   const handleBgUpload = (e, pageIndex) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -180,6 +166,7 @@ function Notebook({ user, onLogout }) {
           ...next[pageIndex],
           customBg: ev.target.result,
           style: "custom",
+          bgAdjust: { scale: 1, rotate: 0, offsetX: 0, offsetY: 0 },
         };
         return next;
       });
@@ -187,58 +174,74 @@ function Notebook({ user, onLogout }) {
     reader.readAsDataURL(file);
   };
 
-  // get style object for preview div (per-page)
+  // Custom background image adjuster
+  // This only changes image position/size/rotation, leaves page (canvas) intact!
+  const handleBgAdjust = (key, value) => {
+    setPages((p) => {
+      const next = [...p];
+      const adjustments = { ...next[currentPage].bgAdjust };
+      adjustments[key] = value;
+      next[currentPage] = { ...next[currentPage], bgAdjust: adjustments };
+      return next;
+    });
+  };
+
+  // Compute only the image style (not the whole canvas/paper)
   const getPageStyleObj = (page) => {
     if (page.style === "custom" && page.customBg) {
-      return {
-        backgroundImage: `url(${page.customBg})`,
-        backgroundSize: "100%", // ya "cover" jo chahiye wo use karo
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center",
-        backgroundColor: "#fff", // white background safe rakhna
-      };
+      // Paper stays plain, ruled, etc. Image is separate layer!
+      // We'll use relative "layer"
+      return pageStyles["plain"];
     }
     return pageStyles[page.style] || pageStyles.ruled;
   };
 
-  // Add / Remove / Navigate pages
+  // Add, Remove, Navigate pages
   const addPage = () => {
-    setPages((p) => [...p, { text: "", style: "ruled", customBg: null }]);
-    setCurrentPage(pages.length); // navigate to new page
-    setText(""); // clear textarea
+    setPages((p) => [
+      ...p,
+      {
+        text: "",
+        style: "ruled",
+        customBg: null,
+        bgAdjust: { scale: 1, rotate: 0, offsetX: 0, offsetY: 0 },
+      },
+    ]);
+    setCurrentPage(pages.length);
+    setText("");
   };
 
   const deletePage = (index) => {
     if (pages.length === 1) {
-      // just clear if only one page
       pushUndo(pages[0].text, 0);
-      setPages([{ text: "", style: "ruled", customBg: null }]);
+      setPages([
+        {
+          text: "",
+          style: "ruled",
+          customBg: null,
+          bgAdjust: { scale: 1, rotate: 0, offsetX: 0, offsetY: 0 },
+        },
+      ]);
       setCurrentPage(0);
       setText("");
       return;
     }
     const next = pages.filter((_, i) => i !== index);
-    setPages(next);
     const newIndex = Math.max(0, index - 1);
+    setPages(next);
     setCurrentPage(newIndex);
     setText(next[newIndex]?.text || "");
   };
 
-  const goNext = () => {
-    const next = Math.min(pages.length - 1, currentPage + 1);
-    setCurrentPage(next);
-  };
-  const goPrev = () => {
-    const prev = Math.max(0, currentPage - 1);
-    setCurrentPage(prev);
-  };
+  const goNext = () =>
+    setCurrentPage(Math.min(pages.length - 1, currentPage + 1));
+  const goPrev = () => setCurrentPage(Math.max(0, currentPage - 1));
 
-  // Sync local text when currentPage changes
   useEffect(() => {
     setText(pages[currentPage]?.text || "");
   }, [currentPage, pages]);
 
-  // Download single page image (current page)
+  // Image download
   const downloadImage = async () => {
     if (!pages[currentPage].text.trim()) return;
     const el = previewRefs.current[currentPage];
@@ -254,17 +257,14 @@ function Notebook({ user, onLogout }) {
     link.click();
   };
 
-  // Download full notebook PDF (all pages)
+  // PDF download
   const downloadPDF = async () => {
-    // require at least one non-empty page
     if (!pages.some((pg) => pg.text.trim())) return;
     const pdf = new jsPDF("p", "mm", "a4");
     const pdfWidth = pdf.internal.pageSize.getWidth();
-
     for (let i = 0; i < pages.length; i++) {
       const el = previewRefs.current[i];
       if (!el) continue;
-      // temporarily ensure element height fits A4 ratio for consistent output (not changing UI)
       const canvas = await html2canvas(el, {
         scale: 3,
         useCORS: true,
@@ -272,14 +272,13 @@ function Notebook({ user, onLogout }) {
       });
       const imgData = canvas.toDataURL("image/png");
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
       if (i > 0) pdf.addPage();
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
     }
     pdf.save("writify-notebook.pdf");
   };
 
-  // Export TXT for current page
+  // TXT export
   const exportTxt = () => {
     const content = pages[currentPage]?.text || "";
     if (!content.trim()) return;
@@ -291,7 +290,7 @@ function Notebook({ user, onLogout }) {
     URL.revokeObjectURL(link.href);
   };
 
-  // Copy current page text
+  // Copy plain text to clipboard
   const copyText = async () => {
     try {
       await navigator.clipboard.writeText(pages[currentPage]?.text || "");
@@ -303,12 +302,12 @@ function Notebook({ user, onLogout }) {
     }
   };
 
-  // Autosave pages to localStorage (debounced)
+  // Autosave changes, including bgAdjust per page
   useEffect(() => {
     if (!autoSave) return;
     const t = setTimeout(() => {
       try {
-        localStorage.setItem("writify_pages_v1", JSON.stringify(pages));
+        localStorage.setItem("writify_pages_v3", JSON.stringify(pages));
         localStorage.setItem("writify_color_v1", customColor);
         setSaveNotice("Saved locally");
         setTimeout(() => setSaveNotice(""), 900);
@@ -317,7 +316,6 @@ function Notebook({ user, onLogout }) {
     return () => clearTimeout(t);
   }, [pages, customColor, autoSave]);
 
-  // load saved color on mount (keeps your previous behavior)
   useEffect(() => {
     try {
       const savedColor = localStorage.getItem("writify_color_v1");
@@ -328,7 +326,6 @@ function Notebook({ user, onLogout }) {
     } catch (e) {}
   }, []);
 
-  // keyboard shortcuts: Ctrl+Z / Ctrl+Y / Ctrl+S
   useEffect(() => {
     const handler = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "z") {
@@ -339,7 +336,6 @@ function Notebook({ user, onLogout }) {
         handleRedo();
       } else if ((e.ctrlKey || e.metaKey) && e.key === "s") {
         e.preventDefault();
-        // quick save current page as txt
         exportTxt();
       }
     };
@@ -354,8 +350,8 @@ function Notebook({ user, onLogout }) {
     letterSpacing: `${letterSpacing}px`,
     wordSpacing: `${wordSpacing}px`,
     paddingTop: `${topOffset}px`,
-    paddingLeft: `${leftPadding}px`, // Added left padding here
-    paddingRight: `${rightPadding}px`, // Added right padding here
+    paddingLeft: `${leftPadding}px`,
+    paddingRight: `${rightPadding}px`,
     color: textColor,
     whiteSpace: "pre-wrap",
     height: "100%",
@@ -366,6 +362,8 @@ function Notebook({ user, onLogout }) {
     flexDirection: "column",
     justifyContent: "flex-start",
     textAlign,
+    position: "relative",
+    zIndex: 10,
   };
 
   const userDisplayName = user?.displayName || user?.email || "User";
@@ -400,10 +398,11 @@ function Notebook({ user, onLogout }) {
         </div>
       </nav>
 
-      {/* Content (UI structure maintained) */}
+      {/* Content */}
       <div className="p-6 max-w-5xl mx-auto bg-[#222831] rounded-xl shadow-md mt-6 text-white">
+        {/* --- The controls --- */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-          {/* Font selector (unchanged) */}
+          {/* Font selector */}
           <label className="flex flex-col text-sm font-medium text-white">
             Font
             <select
@@ -426,7 +425,7 @@ function Notebook({ user, onLogout }) {
             </select>
           </label>
 
-          {/* Pen Style (unchanged) */}
+          {/* Pen Style */}
           <label className="flex flex-col text-sm font-medium text-white">
             Pen Style
             <select
@@ -442,7 +441,7 @@ function Notebook({ user, onLogout }) {
             </select>
           </label>
 
-          {/* Text Alignment (unchanged) */}
+          {/* Text Alignment */}
           <label className="flex flex-col text-sm font-medium text-white">
             Text Alignment
             <select
@@ -559,7 +558,10 @@ function Notebook({ user, onLogout }) {
         />
 
         {/* Preview area */}
-        <div className="w-full overflow-x-auto mb-6">
+        <div
+          className="w-full overflow-x-auto mb-6"
+          style={{ position: "relative" }}
+        >
           <div
             ref={(el) => {
               previewRefs.current[currentPage] = el;
@@ -570,12 +572,32 @@ function Notebook({ user, onLogout }) {
               ...getPageStyleObj(pages[currentPage] || { style: "ruled" }),
               backgroundSize:
                 pages[currentPage]?.style === "ruled" ? "100% 30px" : undefined,
-              padding: 0, // remove default padding here, since we control padding inside previewStyle
               boxSizing: "border-box",
               fontFamily,
               position: "relative",
+              overflow: "hidden",
             }}
           >
+            {/* --- Show background image ONLY for custom image mode --- */}
+            {pages[currentPage]?.style === "custom" &&
+              pages[currentPage].customBg && (
+                <img
+                  src={pages[currentPage].customBg}
+                  alt="Custom background"
+                  style={{
+                    position: "absolute",
+                    left: "50%",
+                    top: "50%",
+                    transform: `translate(-50%, -50%) scale(${pages[currentPage].bgAdjust.scale}) rotate(${pages[currentPage].bgAdjust.rotate}deg) translate(${pages[currentPage].bgAdjust.offsetX}px, ${pages[currentPage].bgAdjust.offsetY}px)`,
+                    zIndex: 1,
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                    opacity: 1,
+                    pointerEvents: "none",
+                  }}
+                />
+              )}
+            {/* --- Text Layer --- */}
             <div style={previewStyle}>
               {pages[currentPage]?.text ? (
                 pages[currentPage].text
@@ -731,14 +753,22 @@ function Notebook({ user, onLogout }) {
                 setPages((p) => {
                   const next = [...p];
                   next[currentPage] = { ...next[currentPage], style };
-                  if (style !== "custom") next[currentPage].customBg = null;
+                  if (style !== "custom") {
+                    next[currentPage].customBg = null;
+                    next[currentPage].bgAdjust = {
+                      scale: 1,
+                      rotate: 0,
+                      offsetX: 0,
+                      offsetY: 0,
+                    };
+                  }
                   return next;
                 });
               }}
               className="mt-1 p-2 bg-[#2d2f34] text-white border border-gray-600 rounded-md cursor-pointer"
             >
-              <option value="plain">Plain</option>
               <option value="ruled">Ruled</option>
+              <option value="plain">Plain</option>
               <option value="custom">Custom Image</option>
             </select>
           </label>
@@ -746,7 +776,6 @@ function Notebook({ user, onLogout }) {
           {pages[currentPage]?.style === "custom" && (
             <label className="flex items-center gap-2 text-sm text-white cursor-pointer border-2-transparent rounded-3xl p-2 bg-[#393E46] pl-23">
               (beta)Upload Custom background:
-              
               <input
                 type="file"
                 accept="image/*"
@@ -756,7 +785,7 @@ function Notebook({ user, onLogout }) {
             </label>
           )}
 
-          {/* small preview thumbnail of current background */}
+          {/* Preview thumbnail of current background */}
           <div
             style={{
               width: 48,
@@ -764,17 +793,84 @@ function Notebook({ user, onLogout }) {
               borderRadius: 6,
               border: "1px solid #444",
               overflow: "hidden",
+              position: "relative",
             }}
           >
-            <div
-              style={{
-                width: "100%",
-                height: "100%",
-                ...getPageStyleObj(pages[currentPage] || { style: "ruled" }),
-              }}
-            />
+            {/* Only show image thumbnail if style is custom */}
+            {pages[currentPage]?.style === "custom" &&
+              pages[currentPage].customBg && (
+                <img
+                  src={pages[currentPage].customBg}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    transform: `scale(${pages[currentPage].bgAdjust.scale}) 
+                    rotate(${pages[currentPage].bgAdjust.rotate}deg) 
+                    translate(${pages[currentPage].bgAdjust.offsetX / 2}px,${
+                      pages[currentPage].bgAdjust.offsetY / 2
+                    }px)`,
+                  }}
+                  alt="preview-bg"
+                />
+              )}
           </div>
         </div>
+
+        {/* ---- Custom Bg Adjustment Controls (for image only) ---- */}
+        {pages[currentPage]?.style === "custom" &&
+          pages[currentPage].customBg && (
+            <div className="flex gap-4 items-center mb-4 bg-[#32343a] rounded-lg p-4">
+              <label>
+                Zoom:
+                <input
+                  type="range"
+                  min="0.5"
+                  max="2.0"
+                  step="0.01"
+                  value={pages[currentPage].bgAdjust?.scale || 1}
+                  onChange={(e) => handleBgAdjust("scale", +e.target.value)}
+                  className="ml-2"
+                />
+              </label>
+              <label>
+                Rotate:
+                <input
+                  type="range"
+                  min="-180"
+                  max="180"
+                  step="1"
+                  value={pages[currentPage].bgAdjust?.rotate || 0}
+                  onChange={(e) => handleBgAdjust("rotate", +e.target.value)}
+                  className="ml-2"
+                />
+              </label>
+              <label>
+                Move H:
+                <input
+                  type="range"
+                  min="-200"
+                  max="200"
+                  step="1"
+                  value={pages[currentPage].bgAdjust?.offsetX || 0}
+                  onChange={(e) => handleBgAdjust("offsetX", +e.target.value)}
+                  className="ml-2"
+                />
+              </label>
+              <label>
+                Move V:
+                <input
+                  type="range"
+                  min="-200"
+                  max="200"
+                  step="1"
+                  value={pages[currentPage].bgAdjust?.offsetY || 0}
+                  onChange={(e) => handleBgAdjust("offsetY", +e.target.value)}
+                  className="ml-2"
+                />
+              </label>
+            </div>
+          )}
 
         {saveNotice && (
           <div className="text-xs text-center text-green-400 mb-4">
