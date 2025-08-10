@@ -8,7 +8,7 @@ import { auth } from "./firebase";
 import "./index.css";
 import "./App.css";
 
-alert("For the phone users , please flip your phones and use it in landscape mode or desktop mode")
+alert("📱For the phone users , please flip your phones and use it in landscape mode or desktop mode")
 function App() {
   const [user, setUser] = useState(null);
   const [showSignup, setShowSignup] = useState(false);

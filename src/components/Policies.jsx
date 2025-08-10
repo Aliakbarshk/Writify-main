@@ -25,9 +25,8 @@ const Policies = () => {
             About Us
           </h2>
           <p className="text-gray-400">
-            We are a digital platform offering unique AI-generated content
-            services. Our mission is to empower users with tools that enhance
-            productivity and creativity.
+            We are a tool that’s for educational purposes and to help people by
+            providing a service. Our tool converts text to handwriting.
           </p>
         </section>
 
@@ -39,10 +38,10 @@ const Policies = () => {
           <p className="text-gray-400">
             For any queries, reach out at{" "}
             <a
-              href="mailto:support@writify.ai"
+              href="mailto:writeefyy@gmail.com"
               className="text-blue-400 underline"
             >
-              support@writify.ai
+              writeefyy@gmail.com
             </a>
           </p>
         </section>

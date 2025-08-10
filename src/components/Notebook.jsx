@@ -382,11 +382,11 @@ function Notebook({ user, onLogout }) {
           <span className="truncate">{userDisplayName} | Plan: Free</span>
         </span>
         <div className="Logo text-lg sm:text-3xl font-extrabold font-cursive text-[#7D8D86] tracking-widest truncate max-w-[30vw] text-center">
-          WRITIFYy
+          YouWritee
         </div>
         <div className="flex items-center gap-3 text-xs sm:text-sm">
           <span className="rounded-xl bg-[#7D8D86] px-3 py-1 text-[#222831] font-bold select-none">
-            pro
+            Plans
           </span>
           <button
             onClick={onLogout}
