@@ -682,7 +682,7 @@ function Notebook({ user, onLogout }) {
           </button>
 
           <button
-            className="px-4 py-2 bg-[#6b7280] hover:bg-[#9ca3af] text-white text-sm rounded-md cursor-pointer"
+            className="px-4 py-2 bg-[#6b8374] hover:bg-[#9ca3af] text-white text-sm rounded-md cursor-pointer"
             onClick={exportTxt}
             disabled={!pages[currentPage]?.text?.trim()}
           >
