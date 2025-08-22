@@ -879,10 +879,10 @@ function Notebook({ user, onLogout }) {
         )}
 
         <footer className="text-center text-xs text-gray-400 border-t border-gray-700 pt-4">
-          Writify © — Personal/Educational Use Only. No refunds. because it is a
+          YouWritee © — Personal/Educational Use Only. No refunds. because it is a
           digital service/tool
           <p>
-            Writify is provided for personal, educational, and creative use
+            YouWritee is provided for personal, educational, and creative use
             only. All content generated using this platform remains the user's
             responsibility.
           </p>
