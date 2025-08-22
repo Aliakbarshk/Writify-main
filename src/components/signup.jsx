@@ -17,7 +17,7 @@ function Signup({ onClose }) {
   return (
     <div className="bg-[#222831] bg-opacity-90 backdrop-blur-md shadow-2xl border border-[#7D8D86] rounded-xl p-8 w-full max-w-md mx-auto">
       <h2 className="text-3xl font-extrabold text-center text-[#7D8D86] mb-6 font-cursive select-none">
-        Welcome to Writify
+        Welcome to <h1>YouWritee</h1>
       </h2>
 
       {error && (
