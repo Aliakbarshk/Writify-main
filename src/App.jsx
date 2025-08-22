@@ -4,6 +4,7 @@ import Signup from "./components/signup";
 import Login from "./components/Login";
 import Notebook from "./components/Notebook";
 import Policies from "./components/Policies";
+import About from "./components/aboutUs";
 import { auth } from "./firebase";
 import "./index.css";
 import "./App.css";
@@ -57,6 +58,7 @@ function App() {
             }
           />
           <Route path="/policies" element={<Policies />} />
+          <Route path="/About" element={<About />} />
           {/* Add other pages like About, Contact here if needed */}
         </Routes>
       </div>

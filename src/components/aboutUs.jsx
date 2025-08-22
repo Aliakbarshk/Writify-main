@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const Policies = () => {
+const AboutUs = () => {
   const navigate = useNavigate();
 
   return (
@@ -16,28 +16,54 @@ const Policies = () => {
         </button>
 
         <h1 className="text-4xl font-bold text-center mb-8 border-b border-gray-600 pb-4">
-          Legal Policies
+          About Us
         </h1>
 
-        {/* About Us */}
+        {/* Our Story */}
         <section className="bg-[#222831] p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-semibold mb-2 text-[#00adb5]">
-            About Us
+            My Journey
           </h2>
           <p className="text-gray-400">
-            We are YouWritee — a tool designed for educational purposes to help
-            people by providing a service that converts text into realistic
-            handwriting.
+            YouWritee is created and managed by just one person — me. I started
+            this project with a passion to make text-to-handwriting conversion
+            easy, fast, and realistic. Everything you see here is built from
+            scratch, with dedication and love for technology.
           </p>
+        </section>
+
+        {/* Mission */}
+        <section className="bg-[#222831] p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold mb-2 text-[#00adb5]">
+            My Mission
+          </h2>
+          <p className="text-gray-400">
+            My mission is to provide a reliable, fun, and simple tool for
+            students, teachers, and anyone who wants to add a personal touch to
+            their text using realistic handwriting.
+          </p>
+        </section>
+
+        {/* Why Choose Me */}
+        <section className="bg-[#222831] p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold mb-2 text-[#00adb5]">
+            Why Choose YouWritee?
+          </h2>
+          <ul className="list-disc list-inside text-gray-400 space-y-1">
+            <li>Solo-built & personally maintained</li>
+            <li>Realistic handwriting styles</li>
+            <li>Fast and easy to use</li>
+            <li>Built with passion and attention to detail</li>
+          </ul>
         </section>
 
         {/* Contact Us */}
         <section className="bg-[#222831] p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-semibold mb-2 text-[#00adb5]">
-            Contact Us
+            Contact Me
           </h2>
-          <p className="text-gray-400">
-            For any queries, reach out at{" "}
+          <p className="text-gray-400 mb-2">
+            Email:{" "}
             <a
               href="mailto:writeefyy@gmail.com"
               className="text-blue-400 underline"
@@ -45,41 +71,16 @@ const Policies = () => {
               writeefyy@gmail.com
             </a>
           </p>
-        </section>
-
-        {/* Privacy Policy */}
-        <section className="bg-[#222831] p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold mb-2 text-[#00adb5]">
-            Privacy Policy
-          </h2>
           <p className="text-gray-400">
-            We value your privacy. We only collect essential data to provide and
-            improve our services. No data is shared with third parties without
-            your consent.
-          </p>
-        </section>
-
-        {/* Terms & Conditions */}
-        <section className="bg-[#222831] p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold mb-2 text-[#00adb5]">
-            Terms & Conditions
-          </h2>
-          <p className="text-gray-400">
-            By using YouWrite, you agree to our terms. Do not misuse the
-            platform or attempt unauthorized access. Violations may lead to
-            permanent account suspension.
-          </p>
-        </section>
-
-        {/* Return & Refund Policy */}
-        <section className="bg-[#222831] p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold mb-2 text-[#00adb5]">
-            Return & Refund Policy
-          </h2>
-          <p className="text-gray-400">
-            As this is a digital service,{" "}
-            <strong>no refunds or cancellations</strong> are allowed once the
-            purchase is made.
+            WhatsApp (No calls):{" "}
+            <a
+              href="https://wa.me/919876543210"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-green-400 underline"
+            >
+              +91 98765 43210
+            </a>
           </p>
         </section>
 
@@ -92,4 +93,4 @@ const Policies = () => {
   );
 };
 
-export default Policies;
+export default AboutUs;

@@ -879,10 +879,10 @@ function Notebook({ user, onLogout }) {
         )}
 
         <footer className="text-center text-xs text-gray-400 border-t border-gray-700 pt-4">
-          Writify © — Personal/Educational Use Only. No refunds. because it is a
-          digital service/tool
+          YouWritee © — Personal/Educational Use Only. No refunds. because it is
+          a digital service/tool
           <p>
-            Writify is provided for personal, educational, and creative use
+            YouWritee is provided for personal, educational, and creative use
             only. All content generated using this platform remains the user's
             responsibility.
           </p>
@@ -893,9 +893,12 @@ function Notebook({ user, onLogout }) {
             >
               Policies
             </Link>
-            <a className="text-[15px] hover:underline cursor-pointer">
-              About us
-            </a>
+            <Link
+              className="text-[15px] hover:underline cursor-pointer"
+              to="/About"
+            >
+              AboutUs
+            </Link>
           </div>
         </footer>
       </div>
