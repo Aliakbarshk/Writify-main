@@ -893,9 +893,12 @@ function Notebook({ user, onLogout }) {
             >
               Policies
             </Link>
-            <a className="text-[15px] hover:underline cursor-pointer">
-              About us
-            </a>
+              <Link
+              className="text-[15px] hover:underline cursor-pointer"
+              to="/About"
+            >
+              AboutUs
+            </Link>
           </div>
         </footer>
       </div>
