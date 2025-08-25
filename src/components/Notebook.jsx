@@ -210,7 +210,7 @@ function Notebook({ user, onLogout }) {
     setCurrentPage(pages.length);
     setText("");
   };
-
+//added
   const deletePage = (index) => {
     if (pages.length === 1) {
       pushUndo(pages[0].text, 0);
