@@ -71,16 +71,17 @@ const AboutUs = () => {
               writeefyy@gmail.com
             </a>
           </p>
-          <p className="text-gray-400">
-            WhatsApp (No calls):{" "}
+          <p className="text-gray-400 flex gap-1.5- ">
+            WhatsApp (Managed by RiseUp media):{" "}
             <a
-              href="https://wa.me/919876543210"
+              href="https://wa.me/918275731344 "
               target="_blank"
               rel="noopener noreferrer"
               className="text-green-400 underline"
             >
-              +91 98765 43210
+              +91 8275731344
             </a>
+            <p> (Dont call Only message)</p>
           </p>
         </section>
 
